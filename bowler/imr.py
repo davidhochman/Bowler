@@ -25,6 +25,28 @@ from .types import (
     Node,
 )
 
+def add_argument(node, arg_name, default_value=None, after=None):
+    if node.type == TOKEN.FUNC_DEF:
+        func_args = node.children[2]
+        func_args.append_child(Node(TOKEN.ARGUMENT, arg_name))
+
+        if default_value is not None:
+            func_args.append_child(Node(TOKEN.EQUALS, "="))
+            func_args.append_child(Node(TOKEN.NUMBER, default_value))
+
+        if after is not None:
+            # Find the position after which to add the argument
+            for i, child in enumerate(func_args.children):
+                if child.value == after:
+                    pos = i + 1
+                    break
+            else:
+                pos = len(func_args.children)
+
+            func_args.insert_child(pos, Node(TOKEN.ARGUMENT, arg_name))
+
+    return node
+
 log = logging.getLogger(__name__)
 
 
@@ -47,7 +69,7 @@ class FunctionArgument:
 
             elif leaf.type == SYMBOL.tname:
                 kwargs["name"] = leaf.children[0].value
-                kwargs["annotation"] = leaf.children[-1].value
+                kwargs["annotation"] = leaf.children[-1]
 
             elif leaf.type == TOKEN.EQUAL:
                 pass

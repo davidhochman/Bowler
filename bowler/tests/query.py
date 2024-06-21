@@ -343,3 +343,19 @@ class Bar:
             self.assertIn(
                 "Only the last fixer/callback may return", error.call_args[0][0]
             )
+
+    def test_function_with_type_hinting(self):
+        def f(x: 'List[str]'):
+            pass
+
+        def query_func(x):
+            return Query(x).select_function(f).add_argument("y", "5", True, "x")
+
+        self.run_bowler_modifiers(
+            [
+                ("def f(x: List[str]): pass", "def f(x: List[str], y): pass"),
+                ("def g(x: List[str]): pass", "def g(x: List[str]): pass"),
+                ("f(['test'])", "f(['test'], 5)"),
+            ],
+            query_func=query_func,
+        )
